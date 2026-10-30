@@ -21,6 +21,7 @@ jobs:
         with:
           node-version: 20
           cache: 'npm'
+          cache-dependency-path: 'package-lock.json'
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -39,6 +40,9 @@ jobs:
 
       - name: Sync Capacitor Android
         run: |
+          if [ ! -f "android/build.gradle" ]; then
+            npx cap add android || true
+          fi
           npx cap sync android
 
       - name: Make Gradle executable
@@ -49,10 +53,10 @@ jobs:
 
       - name: Build Debug APK with Gradle
         run: |
-          if [ -d "android" ]; then
+          if [ -f "android/gradlew" ]; then
             cd android && ./gradlew assembleDebug --stacktrace
           else
-            echo "Android directory will be initialized via npx cap add android during deployment"
+            echo "Gradle wrapper not yet initialized, running Capacitor copy."
           fi
 
       - name: Upload Debug APK
