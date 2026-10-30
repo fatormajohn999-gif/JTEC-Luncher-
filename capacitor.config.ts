@@ -1,0 +1,25 @@
+import type { CapacitorConfig } from '@capacitor/cli';
+
+const config: CapacitorConfig = {
+  appId: 'com.jteclauncher.app',
+  appName: 'JTEC Launcher',
+  webDir: 'dist',
+  server: {
+    androidScheme: 'https',
+    cleartext: false,
+  },
+  android: {
+    backgroundColor: '#000000',
+    allowMixedContent: false,
+    captureInput: true,
+    webContentsDebuggingEnabled: true,
+  },
+  plugins: {
+    SplashScreen: {
+      launchShowDuration: 0,
+      backgroundColor: '#000000',
+    },
+  },
+};
+
+export default config;

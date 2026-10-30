@@ -1,0 +1,6 @@
+{
+  "name": "JTEC Launcher",
+  "description": "Minimalist productivity Android launcher with deep black OLED aesthetics, gestures, custom favorites dock, and native bridge integration.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
