@@ -24,15 +24,11 @@ jobs:
           cache: 'npm'
           cache-dependency-path: 'package-lock.json'
 
-      # Capacitor 8 requires Java 21 (JDK 17 causes compile errors)
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '21'
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
 
       - name: Install NPM Dependencies
         run: npm ci
@@ -40,8 +36,6 @@ jobs:
       - name: Build Web Application
         run: npm run build
 
-      # The committed android/ folder was incomplete (no Gradle files, no resources).
-      # Regenerate a complete native project every time, then apply our overrides.
       - name: Generate native Android project
         run: |
           rm -rf android
@@ -55,6 +49,8 @@ jobs:
 
       - name: Build Debug APK with Gradle
         working-directory: android
+        env:
+          ANDROID_HOME: /usr/local/lib/android/sdk
         run: |
           chmod +x ./gradlew
           ./gradlew assembleDebug --stacktrace
