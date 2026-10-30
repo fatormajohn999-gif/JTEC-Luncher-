@@ -541,11 +541,18 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     registered in <code className="text-[11px] font-mono text-zinc-300">MainActivity.kt</code>.
                   </p>
                   <p>
-                    <strong className="text-zinc-200">4. Automated APK Workflow:</strong> Configured in{' '}
+                    <strong className="text-zinc-200">4. Automated APK CI/CD:</strong> Configured in{' '}
                     <code className="text-[11px] font-mono text-zinc-300">
                       .github/workflows/build-apk.yml
                     </code>{' '}
-                    for CI/CD compilation using Gradle.
+                    with <code className="text-[11px] font-mono text-zinc-300">package-lock.json</code> to guarantee reproducible zero-drift builds.
+                  </p>
+                  <p className="text-[11px] text-zinc-400 border-t border-zinc-800/80 pt-1.5 mt-1">
+                    <strong className="text-zinc-300">Git commit reminder:</strong> Run{' '}
+                    <code className="text-[10px] font-mono text-zinc-300 bg-black/60 px-1 py-0.5 rounded">
+                      git add package-lock.json && git commit
+                    </code>{' '}
+                    before pushing.
                   </p>
                 </div>
               </div>
