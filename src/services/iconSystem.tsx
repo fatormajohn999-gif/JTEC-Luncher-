@@ -19,17 +19,9 @@ import {
   FileText,
   Calendar,
   Users,
-  Compass,
   Radio,
-  Share2,
   Terminal,
-  Video,
   Shield,
-  Layers,
-  Sparkles,
-  Bookmark,
-  Bell,
-  Cpu,
 } from 'lucide-react';
 
 interface AppIconProps {

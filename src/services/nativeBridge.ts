@@ -34,8 +34,11 @@ interface JTECLauncherNativePlugin {
   triggerHaptic(): Promise<{ success: boolean }>;
 }
 
-// Register the Capacitor plugin
-const JTECLauncher = registerPlugin<JTECLauncherNativePlugin>('JTECLauncher');
+// Register the Capacitor plugin safely
+const JTECLauncher =
+  typeof Capacitor !== 'undefined'
+    ? registerPlugin<JTECLauncherNativePlugin>('JTECLauncher')
+    : null;
 
 // Baseline fallback applications for web preview / development mode
 const FALLBACK_INSTALLED_APPS: InstalledApp[] = [
@@ -150,14 +153,31 @@ const FALLBACK_INSTALLED_APPS: InstalledApp[] = [
 ];
 
 export const isNativeAndroid = (): boolean => {
-  return Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android';
+  try {
+    return (
+      typeof Capacitor !== 'undefined' &&
+      typeof Capacitor.isNativePlatform === 'function' &&
+      Capacitor.isNativePlatform() &&
+      Capacitor.getPlatform() === 'android'
+    );
+  } catch {
+    return false;
+  }
 };
 
 export const getBridgeStatus = (): NativeBridgeStatus => {
   const native = isNativeAndroid();
+  let platform: 'android' | 'web' | 'ios' = 'web';
+  try {
+    if (typeof Capacitor !== 'undefined' && typeof Capacitor.getPlatform === 'function') {
+      platform = (Capacitor.getPlatform() as 'android' | 'web' | 'ios') || 'web';
+    }
+  } catch {
+    platform = 'web';
+  }
   return {
     isNative: native,
-    platform: (Capacitor.getPlatform() as 'android' | 'web' | 'ios') || 'web',
+    platform,
     packageName: 'com.jteclauncher.app',
     bridgeReady: true,
   };
@@ -165,9 +185,10 @@ export const getBridgeStatus = (): NativeBridgeStatus => {
 
 /**
  * Native discovery of installed applications via Android PackageManager.
+ * If running in standard browser, GitHub Pages, or preview, falls back to fallback apps.
  */
 export const getInstalledApps = async (): Promise<InstalledApp[]> => {
-  if (isNativeAndroid()) {
+  if (isNativeAndroid() && JTECLauncher) {
     try {
       const result = await JTECLauncher.getInstalledApps();
       if (result && Array.isArray(result.apps) && result.apps.length > 0) {
@@ -178,7 +199,7 @@ export const getInstalledApps = async (): Promise<InstalledApp[]> => {
     }
   }
 
-  // Fallback for Web preview / development mode
+  // Fallback for Web preview / GitHub Pages / non-native environment
   return [...FALLBACK_INSTALLED_APPS].sort((a, b) => a.name.localeCompare(b.name));
 };
 
@@ -188,7 +209,7 @@ export const getInstalledApps = async (): Promise<InstalledApp[]> => {
 export const launchApp = async (app: InstalledApp): Promise<boolean> => {
   triggerHaptic();
 
-  if (isNativeAndroid()) {
+  if (isNativeAndroid() && JTECLauncher) {
     try {
       const result = await JTECLauncher.launchApp({ packageName: app.packageName });
       return result.success;
@@ -221,7 +242,7 @@ export const launchApp = async (app: InstalledApp): Promise<boolean> => {
 export const openAppInfo = async (app: InstalledApp): Promise<boolean> => {
   triggerHaptic();
 
-  if (isNativeAndroid()) {
+  if (isNativeAndroid() && JTECLauncher) {
     try {
       const result = await JTECLauncher.openAppInfo({ packageName: app.packageName });
       return result.success;
@@ -247,7 +268,7 @@ export const openAppInfo = async (app: InstalledApp): Promise<boolean> => {
 export const uninstallApp = async (app: InstalledApp): Promise<boolean> => {
   triggerHaptic();
 
-  if (isNativeAndroid()) {
+  if (isNativeAndroid() && JTECLauncher) {
     try {
       const result = await JTECLauncher.uninstallApp({ packageName: app.packageName });
       return result.success;
@@ -273,7 +294,7 @@ export const uninstallApp = async (app: InstalledApp): Promise<boolean> => {
 export const openHomeSettings = async (): Promise<boolean> => {
   triggerHaptic();
 
-  if (isNativeAndroid()) {
+  if (isNativeAndroid() && JTECLauncher) {
     try {
       const result = await JTECLauncher.openHomeSettings();
       return result.success;
@@ -295,7 +316,7 @@ export const openHomeSettings = async (): Promise<boolean> => {
  * Trigger subtle tactile feedback on touch/press.
  */
 export const triggerHaptic = async (): Promise<void> => {
-  if (isNativeAndroid()) {
+  if (isNativeAndroid() && JTECLauncher) {
     try {
       await JTECLauncher.triggerHaptic();
       return;

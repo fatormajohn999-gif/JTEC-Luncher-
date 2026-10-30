@@ -11,8 +11,6 @@ import {
   Star,
   Check,
   ChevronRight,
-  ExternalLink,
-  Shield,
   Layers,
   Sparkles,
 } from 'lucide-react';
