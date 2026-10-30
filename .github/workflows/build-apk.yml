@@ -11,6 +11,7 @@ jobs:
   build:
     name: Build Android APK
     runs-on: ubuntu-latest
+    timeout-minutes: 45
 
     steps:
       - name: Checkout Repository
@@ -23,11 +24,12 @@ jobs:
           cache: 'npm'
           cache-dependency-path: 'package-lock.json'
 
-      - name: Set up JDK 17
+      # Capacitor 8 requires Java 21 (JDK 17 causes compile errors)
+      - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
@@ -38,31 +40,28 @@ jobs:
       - name: Build Web Application
         run: npm run build
 
-      - name: Sync Capacitor Android
+      # The committed android/ folder was incomplete (no Gradle files, no resources).
+      # Regenerate a complete native project every time, then apply our overrides.
+      - name: Generate native Android project
         run: |
-          if [ ! -f "android/build.gradle" ]; then
-            npx cap add android || true
-          fi
+          rm -rf android
+          npx cap add android
           npx cap sync android
 
-      - name: Make Gradle executable
+      - name: Apply JTEC native overrides
         run: |
-          if [ -f "android/gradlew" ]; then
-            chmod +x android/gradlew
-          fi
+          cp -r android-overrides/java/. android/app/src/main/java/
+          cp android-overrides/AndroidManifest.xml android/app/src/main/AndroidManifest.xml
 
       - name: Build Debug APK with Gradle
+        working-directory: android
         run: |
-          if [ -f "android/gradlew" ]; then
-            cd android && ./gradlew assembleDebug --stacktrace
-          else
-            echo "Gradle wrapper not yet initialized, running Capacitor copy."
-          fi
+          chmod +x ./gradlew
+          ./gradlew assembleDebug --stacktrace
 
       - name: Upload Debug APK
-        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: jtec-launcher-debug-apk
           path: android/app/build/outputs/apk/debug/*.apk
-          if-no-files-found: warn
+          if-no-files-found: error
